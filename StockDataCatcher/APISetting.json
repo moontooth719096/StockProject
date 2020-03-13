@@ -1,0 +1,6 @@
+{
+  "StockInfo": {
+    "APIUrl": "http://www.twse.com.tw/exchangeReport/STOCK_DAY",
+    "CallType": "Get"
+  }
+}
