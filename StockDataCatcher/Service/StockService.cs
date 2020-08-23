@@ -12,9 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace StockDataCatcher.Service
@@ -22,32 +20,38 @@ namespace StockDataCatcher.Service
     public class StockService : IStockService
     {
         private readonly ConsoleLogHelper _Log;
-        private readonly APIHelperV2 _ApiHelper;
         private readonly IConfiguration _Configuration;
         private StockInfoDB _StockInfoDB;
-        public StockService(IConfiguration Configuration, ConsoleLogHelper Log, APIHelperV2 ApiHelper)
+        private APIService _api;
+        public StockService(IConfiguration Configuration, ConsoleLogHelper Log, APIService Api)
         {
             _Log = Log;
-            _ApiHelper = ApiHelper;
+            _api = Api;
             _Configuration = Configuration;
             _StockInfoDB = new StockInfoDB(_Configuration);
         }
-        public void Proccess()
+        public  void Proccess()
         {
-            //_Log.Log("test", ConsoleColor.Red);
-            //Thread ExThread = null;
-            //ExThread = new Thread(new ThreadStart(await StockInfo_Get));
-            //ExThread.Start();
             NetWorkTest TestNet = new NetWorkTest();
             if (TestNet.NetWorkConnetStatus())
             {
                 _Log.Log("網路連線測試成功", ConsoleColor.Green);
-                StockInfo_Get();
+                if (_StockInfoDB.ConnetTest)
+                {
+                    _Log.Log("DB連線測試成功", ConsoleColor.Green);
+                    StockInfo_Get();
+                }
+                else
+                {
+                    _Log.Log("DB連線異常", ConsoleColor.Red);
+                }
             }
             else
             {
                 _Log.Log("網路連線異常，請確認網路是否連線", ConsoleColor.Red);
             }
+
+           
 
         }
 
@@ -72,8 +76,7 @@ namespace StockDataCatcher.Service
                 try
                 {
                     // 呼叫api
-                    JObject APIResult = StockApi_Call(data
-);
+                    JObject APIResult = StockApi_Call(data).Result;
                     //拆解檔案內容
                     List<StockInfo> StockInfoList = DownloadData_Analysis(APIResult, data);
                     //存入db
@@ -99,7 +102,7 @@ namespace StockDataCatcher.Service
             }
             catch (Exception ex)
             {
-
+                _Log.Log($"取得要拉取資訊的公司發生例外，{ex.Message}");
             }
             _Log.Log($"共取得 {StockIDList.Count} 間公司");
             return StockIDList;
@@ -107,7 +110,7 @@ namespace StockDataCatcher.Service
         #endregion
 
         #region 呼叫api
-        private JObject StockApi_Call(StockIDModel data, string SreachDate = null)
+        private async Task<JObject> StockApi_Call(StockIDModel data, string SreachDate = null)
         {
 
             if (string.IsNullOrEmpty(SreachDate))
@@ -115,7 +118,13 @@ namespace StockDataCatcher.Service
             _Log.Log($"拉取{data.StockID}-{data.StockName}-{SreachDate}的股票資訊");
             string GetString = $"{_Configuration["StockInfo:APIUrl"].ToString()}?response=json&date={SreachDate}&stockNo={data.StockID}";
             _Log.Log(GetString, ConsoleColor.Green);
-            return _ApiHelper.Get(GetString);
+            string ApiResult = await _api.Get_async(GetString);
+            JObject CallResult = null;
+            if (!string.IsNullOrEmpty(ApiResult))
+            {
+                CallResult = JObject.Parse(ApiResult);
+            }
+            return CallResult;
         }
         #endregion
 
@@ -179,23 +188,23 @@ namespace StockDataCatcher.Service
         #endregion
 
         #region 取得主力進出資訊
-        private void MainForceInOut_Get(StockIDModel data)
+        private async void MainForceInOut_Get(StockIDModel data)
         {
             _Log.Log("開始拉取主力買賣資訊");
-            HtmlDocument MainForceInOutHtmlInfo = MainForceInOutHtmlInfo_Get(data.StockID);
-            List<MainForceInOutInfo> MainForceInOutInfoList = MainForceInOutData_Analysis(MainForceInOutHtmlInfo, data.StockID);
+            Task<HtmlDocument> MainForceInOutHtmlInfo = MainForceInOutHtmlInfo_Get(data.StockID);
+            
+            List<MainForceInOutInfo> MainForceInOutInfoList = MainForceInOutData_Analysis(MainForceInOutHtmlInfo.Result, data.StockID);
             MainForceInOutData_Save(MainForceInOutInfoList);
             _Log.Log("拉取主力買賣資訊結束");
         }
 
-        private HtmlDocument MainForceInOutHtmlInfo_Get(string StockID)
+        private async Task<HtmlDocument> MainForceInOutHtmlInfo_Get(string StockID)
         {
-            HtmlWeb webClient = new HtmlWeb();
             StringBuilder Url = new StringBuilder("http://pchome.megatime.com.tw/stock/sto1/ock4/sid");
             Url.Append(StockID).Append(".html");
             string Parameter = "is_check=1";
             _Log.Log(Url.ToString(), ConsoleColor.Green);
-            string Result = ApiHelper.Post(Url.ToString(), ContentTypeEnum.urlencoded, Parameter);
+            string Result =await _api.Post_async(Url.ToString(), ContentTypeEnum.urlencoded, Parameter);
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(Result);
             //webClient.Load(Url.ToString(),"POST");

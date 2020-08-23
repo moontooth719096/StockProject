@@ -9,6 +9,25 @@ namespace CommonService.DBClass.DBBase
 {
     class SystemDB
     {
+        #region DBTest
+        static public bool ConnetTest(string str_conn)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(str_conn))
+                {
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        #endregion
+
         #region DB_Action_Single
         static public T DB_Action_Single<T>(string str_conn, string SqlString, object sql_value)
         {

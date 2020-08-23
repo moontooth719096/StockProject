@@ -18,7 +18,9 @@ namespace CommonService.DBClass.DBBase
 
             String user = _Configuration[dbName + ":user"];
             String pwd = _Configuration[dbName + ":pwd"];
-            Connection(ip, user, pwd);
+            Connection(ip,null, user, pwd);
+            //檢測db連線
+            base.ConnetTest = SystemDB.ConnetTest(str_conn);
         }
     }
 }

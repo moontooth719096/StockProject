@@ -29,6 +29,10 @@ namespace CommonService.DBClass.DBBase
         /// 連線字串
         /// </summary>
         protected string str_conn { get; set; }
+        /// <summary>
+        /// 測試連線結果
+        /// </summary>
+        public bool ConnetTest { get; set; }
 
         #region Connection  設定1 連線字串
         /// <summary>
@@ -45,7 +49,7 @@ namespace CommonService.DBClass.DBBase
             StringBuilder CombinString = new StringBuilder("Data Source=");
             CombinString.Append(Ip).Append(";");
             if(!string.IsNullOrEmpty(id))
-                CombinString.Append("User ID =").Append(Ip).Append(";");
+                CombinString.Append("User ID =").Append(id).Append(";");
             if (!string.IsNullOrEmpty(Pw))
                 CombinString.Append("Password=").Append(Pw).Append(";");
             CombinString.Append("Initial Catalog=").Append(DbName).Append(";"); 

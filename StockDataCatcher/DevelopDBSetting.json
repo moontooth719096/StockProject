@@ -1,0 +1,8 @@
+{
+  "StockInfoDB": {
+    "publicip": "192.168.0.101",
+    "privateip": "192.168.0.101",
+    "user": "developuser",
+    "pwd": "M971384265"
+  }
+}
