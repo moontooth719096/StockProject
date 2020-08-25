@@ -30,10 +30,13 @@ namespace StockDataCatcher
             //IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>();
             //IStockService stockService = serviceProvider.GetService<IStockService>();
             //stockService.Proccess();
-            
+            IList<DateTime> date = new List<DateTime>() {
+               new DateTime(2020,08,01)
+            };
             foreach (IStock service in serviceProvider.GetServices<IStock>())
             {
-               service.DataProccess();
+                //service.DataProccess();
+                service.DataProccess_UserSeting(date);
             }
             Console.ReadKey();
         }
@@ -53,7 +56,10 @@ namespace StockDataCatcher
         private static void ServiceSetting()
         {
             List<StockIDModel> data = new List<StockIDModel> {
-                new StockIDModel{ StockID = "3037",StockName="新興"}
+                new StockIDModel{ StockID = "1907",StockName="永豐餘"},
+                new StockIDModel{ StockID = "2354",StockName="鴻準"},
+                new StockIDModel{ StockID = "3017",StockName="錡鋐"},
+                new StockIDModel{ StockID = "2344",StockName="華邦電"}
             };
             serviceProvider = new ServiceCollection()
                 .AddHttpClient()

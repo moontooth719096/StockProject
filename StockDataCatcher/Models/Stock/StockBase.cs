@@ -6,6 +6,7 @@ using CommonService.Services;
 using Microsoft.Extensions.Configuration;
 using StockDataCatcher.Helper;
 using StockDataCatcher.Interface;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -37,21 +38,29 @@ namespace StockDataCatcher.Models.Stock
         /// <returns></returns>
         public async Task DataProccess()
         {
-            List<T> Data = await Data_Get();
+            IList<T> Data = await Data_Get();
 
             DataSave(Data);
         }
+
+        public async Task DataProccess_UserSeting(IList<DateTime> DatetimeList)
+        {
+            IList<T> Data = await Data_Get_UserSetting(DatetimeList);
+
+            DataSave(Data);
+        }
+
         /// <summary>
         /// 儲存資料
         /// </summary>
         /// <returns></returns>
-        public abstract void DataSave(List<T> Data);
+        public abstract void DataSave(IList<T> Data);
         /// <summary>
         /// 拉取資料
         /// </summary>
         /// <returns></returns>
-        public abstract Task<List<T>> Data_Get();
-
+        public abstract Task<IList<T>> Data_Get();
+        public abstract Task<IList<T>> Data_Get_UserSetting(IList<DateTime> DateTimeList);
         /// <summary>
         /// 發出警告
         /// </summary>

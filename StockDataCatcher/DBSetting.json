@@ -1,8 +1,8 @@
 {
   "StockInfoDB": {
-    "publicip": "DESKTOP-Q60IK86\\SQLEXPRESS",
-    "privateip": "DESKTOP-Q60IK86\\SQLEXPRESS",
-    "user": "",
-    "pwd": ""
+    "publicip": "192.168.204.128",
+    "privateip": "192.168.204.128",
+    "user": "StockUser ",
+    "pwd": "M15681568"
   }
 }

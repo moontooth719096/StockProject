@@ -21,7 +21,7 @@ namespace CommonService.DBClass
 
 
         #region 整批新增股票資訊
-        public Dictionary<string, object> BatchSP_ImportStockInfo(List<StockInfo> StockInfoList)
+        public Dictionary<string, object> BatchSP_ImportStockInfo(IList<StockInfo> StockInfoList)
         {
             DynamicParameters parameters = new DynamicParameters();
             Dictionary<string, object> result = new Dictionary<string, object>();
@@ -30,7 +30,7 @@ namespace CommonService.DBClass
                 parameters.AddTable<StockInfo>("@importTable", "TB_ImporeStockInfo", StockInfoList);
                 parameters.Add("@Code", dbType: DbType.Int32, direction: ParameterDirection.Output);
                 parameters.Add("@Msg", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
-                SystemDB.DB_Action_Output(str_conn, "BatchSP_ImportStockInfo", ref parameters);
+                SystemDB.DB_Action_Output(str_conn, "BatchSP_ImportStockInfoV2", ref parameters);
                 int code = parameters.Get<int>("@Code");
                 string message = parameters.Get<string>("@Msg");
                 result.Add("Code", code);
