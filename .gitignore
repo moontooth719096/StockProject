@@ -1,8 +1,4 @@
-/CommonService/bin
-/CommonService/obj
-/MyBackEnd/bin
-/MyBackEnd/obj
-/StockDataCatcher/bin
-/StockDataCatcher/*.user
-/StockDataCatcher/obj
+/*/bin
+/*/*.user
+/*/obj
 /.vs

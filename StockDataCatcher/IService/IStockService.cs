@@ -4,7 +4,7 @@ namespace StockDataCatcher.IService
 {
     public interface IStockService
     {
-       void Proccess();
-        void StockInfo_Get();
+       Task Proccess();
+       Task StockInfo_Get();
     }
 }

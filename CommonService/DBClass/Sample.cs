@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace CommonService.DBClass
 {
@@ -20,7 +21,7 @@ namespace CommonService.DBClass
 
         #region output範例
 
-        public Dictionary<string, object> APISP_Live_UserPermissionAdd(string name,string email,int status,int userlevel,int editor)
+        public async Task<Dictionary<string, object>> APISP_Live_UserPermissionAdd(string name,string email,int status,int userlevel,int editor)
         {
             DynamicParameters parameters = new DynamicParameters();
             Dictionary<string, object> result = new Dictionary<string, object>();
@@ -31,7 +32,7 @@ namespace CommonService.DBClass
             parameters.Add("@editor", editor, dbType: DbType.Int32);
             parameters.Add("@Code", dbType: DbType.Int32, size: 100, direction: ParameterDirection.Output);
             parameters.Add("@MSG", dbType: DbType.String, size: 100, direction: ParameterDirection.Output);
-            SystemDB.DB_Action_Output(str_conn, "APISP_Live_UserPermissionAdd", ref parameters);
+            DynamicParameters Result = await SystemDB.DB_Action_Output(str_conn, "APISP_Live_UserPermissionAdd" ,parameters);
             int code = parameters.Get<int>("@Code");
             string message = parameters.Get<string>("@MSG");
             result.Add("Code", code);

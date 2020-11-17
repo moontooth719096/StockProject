@@ -30,7 +30,7 @@ namespace StockDataCatcher.Service
             _Configuration = Configuration;
             _StockInfoDB = new StockInfoDB(_Configuration);
         }
-        public  void Proccess()
+        public async Task Proccess()
         {
             NetWorkTest TestNet = new NetWorkTest();
             if (TestNet.NetWorkConnetStatus())
@@ -39,7 +39,7 @@ namespace StockDataCatcher.Service
                 if (_StockInfoDB.ConnetTest)
                 {
                     _Log.Log("DB連線測試成功", ConsoleColor.Green);
-                    StockInfo_Get();
+                    await  StockInfo_Get();
                 }
                 else
                 {
@@ -50,23 +50,20 @@ namespace StockDataCatcher.Service
             {
                 _Log.Log("網路連線異常，請確認網路是否連線", ConsoleColor.Red);
             }
-
-           
-
         }
 
         #region 取得股票交易資訊
-        public void StockInfo_Get()
+        public async Task StockInfo_Get()
         {
             _Log.Log("開始執行", ConsoleColor.Green);
             //取得要拉取資訊的公司
-            List<StockIDModel> StockIDList = StockIDByStatusTrue_Get();
+            List<StockIDModel> StockIDList = await StockIDByStatusTrue_Get();
             foreach (StockIDModel data in StockIDList)
             {
                 #region 取得主力資訊
                 try
                 {
-                    MainForceInOut_Get(data);
+                    await MainForceInOut_Get(data);
                 }
                 catch
                 {
@@ -76,7 +73,7 @@ namespace StockDataCatcher.Service
                 try
                 {
                     // 呼叫api
-                    JObject APIResult = StockApi_Call(data).Result;
+                    JObject APIResult = await StockApi_Call(data);
                     //拆解檔案內容
                     List<StockInfo> StockInfoList = DownloadData_Analysis(APIResult, data);
                     //存入db
@@ -91,14 +88,14 @@ namespace StockDataCatcher.Service
             _Log.Log("執行結束", ConsoleColor.Yellow);
         }
         #region 取得要拉取資訊的公司
-        private List<StockIDModel> StockIDByStatusTrue_Get()
+        private async  Task<List<StockIDModel>> StockIDByStatusTrue_Get()
         {
             _Log.Log("取得要拉取資訊的公司");
-            List<StockIDModel> StockIDList = new List<StockIDModel>();
+            List<StockIDModel> StockIDList = null;
 
             try
             {
-                StockIDList = _StockInfoDB.BatchSP_StockID_StatusTrue_Get();
+                StockIDList = (await _StockInfoDB.BatchSP_StockID_StatusTrue_Get()).ToList();
             }
             catch (Exception ex)
             {
@@ -135,29 +132,42 @@ namespace StockDataCatcher.Service
             if (APIResult.Property("stat") != null && APIResult["stat"].ToString() == "OK")
             {
                 _Log.Log($"拉取成功，開始拆解json", ConsoleColor.Green);
-                if (APIResult.Property("data") != null)
+                JProperty Data = APIResult.Property("data");
+                if (Data != null)
                 {
-                    StockInfo StockInfoData;
+                    //StockInfo StockInfoData;
                     //DateTime dateout;
                     decimal convertout;
-
-                    foreach (JArray data in APIResult.Property("data").Value)
-                    {
-                        StockInfoData = new StockInfo();
-                        StockInfoData.StockID = StockData.StockID;
-                        DateTime Datec = DateTime.ParseExact(data[0].ToString(), "yyy/MM/dd", CultureInfo.InvariantCulture).AddYears(1911);
-                        StockInfoData.Date = Datec;
-                        //DateTime.TryParse(data[0].ToString(),out dateout)?new DateTime(): dateout;
-                        StockInfoData.TradingVolume = decimal.TryParse(data[1].ToString().Replace(",", ""), out convertout) ? convertout : 0;
-                        StockInfoData.Turnover = decimal.TryParse(data[2].ToString().Replace(",", ""), out convertout) ? convertout : 0;
-                        StockInfoData.OpeningPrice = decimal.TryParse(data[3].ToString(), out convertout) ? convertout : 0;
-                        StockInfoData.HighestPrice = decimal.TryParse(data[4].ToString(), out convertout) ? convertout : 0;
-                        StockInfoData.LowestPrice = decimal.TryParse(data[5].ToString(), out convertout) ? convertout : 0;
-                        StockInfoData.ClosingPrice = decimal.TryParse(data[6].ToString(), out convertout) ? convertout : 0;
-                        StockInfoData.Spreads = decimal.TryParse(data[7].ToString(), out convertout) ? convertout : 0;
-                        StockInfoData.TransactionAmount = decimal.TryParse(data[8].ToString().Replace(",", ""), out convertout) ? convertout : 0;
-                        StockInfoList.Add(StockInfoData);
-                    }
+                    StockInfoList = Data.Value.AsJEnumerable().Select(x=>
+                        new StockInfo {
+                            StockID = StockData.StockID,
+                            Date = DateTime.ParseExact(x[0].ToString(), "yyy/MM/dd", CultureInfo.InvariantCulture).AddYears(1911),
+                            TradingVolume = decimal.TryParse(x[1].ToString().Replace(",", ""), out convertout) ? convertout : 0,
+                            Turnover = decimal.TryParse(x[2].ToString().Replace(",", ""), out convertout) ? convertout : 0,
+                            OpeningPrice = decimal.TryParse(x[3].ToString(), out convertout) ? convertout : 0,
+                            HighestPrice = decimal.TryParse(x[4].ToString(), out convertout) ? convertout : 0,
+                            LowestPrice = decimal.TryParse(x[5].ToString(), out convertout) ? convertout : 0,
+                            ClosingPrice = decimal.TryParse(x[6].ToString(), out convertout) ? convertout : 0,
+                            Spreads = decimal.TryParse(x[7].ToString(), out convertout) ? convertout : 0,
+                            TransactionAmount = decimal.TryParse(x[8].ToString().Replace(",", ""), out convertout) ? convertout : 0,
+                             }).ToList();
+                    //foreach (JArray data in APIResult.Property("data").Value)
+                    //{
+                    //    StockInfoData = new StockInfo();
+                    //    StockInfoData.StockID = StockData.StockID;
+                    //    DateTime Datec = DateTime.ParseExact(data[0].ToString(), "yyy/MM/dd", CultureInfo.InvariantCulture).AddYears(1911);
+                    //    StockInfoData.Date = Datec;
+                    //    //DateTime.TryParse(data[0].ToString(),out dateout)?new DateTime(): dateout;
+                    //    StockInfoData.TradingVolume = decimal.TryParse(data[1].ToString().Replace(",", ""), out convertout) ? convertout : 0;
+                    //    StockInfoData.Turnover = decimal.TryParse(data[2].ToString().Replace(",", ""), out convertout) ? convertout : 0;
+                    //    StockInfoData.OpeningPrice = decimal.TryParse(data[3].ToString(), out convertout) ? convertout : 0;
+                    //    StockInfoData.HighestPrice = decimal.TryParse(data[4].ToString(), out convertout) ? convertout : 0;
+                    //    StockInfoData.LowestPrice = decimal.TryParse(data[5].ToString(), out convertout) ? convertout : 0;
+                    //    StockInfoData.ClosingPrice = decimal.TryParse(data[6].ToString(), out convertout) ? convertout : 0;
+                    //    StockInfoData.Spreads = decimal.TryParse(data[7].ToString(), out convertout) ? convertout : 0;
+                    //    StockInfoData.TransactionAmount = decimal.TryParse(data[8].ToString().Replace(",", ""), out convertout) ? convertout : 0;
+                    //    StockInfoList.Add(StockInfoData);
+                    //}
                 }
             }
             _Log.Log($"拆解結束，共 {StockInfoList.Count} 筆");
@@ -166,13 +176,13 @@ namespace StockDataCatcher.Service
         #endregion
 
         #region 存入db
-        private void DownloadData_Save(List<StockInfo> StockInfoList)
+        private async Task DownloadData_Save(List<StockInfo> StockInfoList)
         {
             Dictionary<string, object> Result = new Dictionary<string, object>();
 
             try
             {
-                Result = _StockInfoDB.BatchSP_ImportStockInfo(StockInfoList);
+                Result =await _StockInfoDB.BatchSP_ImportStockInfo(StockInfoList);
                 if (Result["Code"].ToString() == "1")
                     _Log.Log($"{DateTime.Now}--Code：{Result["Code"].ToString()}，Msg：{Result["Message"].ToString()}", ConsoleColor.Green);
                 else
@@ -188,12 +198,12 @@ namespace StockDataCatcher.Service
         #endregion
 
         #region 取得主力進出資訊
-        private async void MainForceInOut_Get(StockIDModel data)
+        private async Task MainForceInOut_Get(StockIDModel data)
         {
             _Log.Log("開始拉取主力買賣資訊");
-            Task<HtmlDocument> MainForceInOutHtmlInfo = MainForceInOutHtmlInfo_Get(data.StockID);
+            HtmlDocument MainForceInOutHtmlInfo =await MainForceInOutHtmlInfo_Get(data.StockID);
             
-            List<MainForceInOutInfo> MainForceInOutInfoList = MainForceInOutData_Analysis(MainForceInOutHtmlInfo.Result, data.StockID);
+            List<MainForceInOutInfo> MainForceInOutInfoList = MainForceInOutData_Analysis(MainForceInOutHtmlInfo, data.StockID);
             MainForceInOutData_Save(MainForceInOutInfoList);
             _Log.Log("拉取主力買賣資訊結束");
         }
@@ -267,12 +277,12 @@ namespace StockDataCatcher.Service
         }
 
 
-        public void MainForceInOutData_Save(List<MainForceInOutInfo> MainForceInOutInfoList)
+        public async Task MainForceInOutData_Save(List<MainForceInOutInfo> MainForceInOutInfoList)
         {
             Dictionary<string, object> Result = new Dictionary<string, object>();
             try
             {
-                Result = _StockInfoDB.BatchSP_ImportStockInfo(MainForceInOutInfoList);
+                Result =await _StockInfoDB.BatchSP_ImportStockInfo(MainForceInOutInfoList);
                 if (Result["Code"].ToString() == "1")
                     _Log.Log($"{DateTime.Now}--主力買賣資訊，Code：{Result["Code"].ToString()}，Msg：{Result["Message"].ToString()}", ConsoleColor.Green);
                 else

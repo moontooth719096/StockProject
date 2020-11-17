@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace CommonService.DBClass.DBBase
 {
@@ -92,13 +93,13 @@ namespace CommonService.DBClass.DBBase
         /// <param name="str_conn">連線字串</param>
         /// <param name="sp_name">SP 名稱</param>
         /// <param name="sql_value">輸入的值與類型</param>
-        static public List<T> DB_SPAction<T>(string str_conn, string sp_name, object sql_value)
+        static public async Task<IEnumerable<T>> DB_SPAction<T>(string str_conn, string sp_name, object sql_value)
         {
             try
             {
                 using (SqlConnection conn = new SqlConnection(str_conn))
                 {
-                    return conn.Query<T>(sp_name, sql_value, commandType: CommandType.StoredProcedure).ToList();
+                    return await conn.QueryAsync<T>(sp_name, sql_value, commandType: CommandType.StoredProcedure);
                 }
             }
             catch (Exception ex)
@@ -137,13 +138,14 @@ namespace CommonService.DBClass.DBBase
         #endregion
 
         #region DB_Action_OutReturnput
-        static public void DB_Action_Output(string str_conn, string sp_name, ref DynamicParameters parameters)
+        static public async Task<DynamicParameters> DB_Action_Output(string str_conn, string sp_name,DynamicParameters parameters)
         {
             try
             {
                 using (SqlConnection conn = new SqlConnection(str_conn))
                 {
-                    conn.Execute(sp_name, parameters, commandType: CommandType.StoredProcedure);
+                   await  conn.ExecuteAsync(sp_name, parameters, commandType: CommandType.StoredProcedure);
+                    return parameters;
                 }
             }
             catch (Exception ex)

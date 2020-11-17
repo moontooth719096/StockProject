@@ -118,7 +118,6 @@ namespace StockDataCatcher.Models.Stock
                 StockInfoData.StockID = StockID;
                 DateTime Datec = DateTime.ParseExact(data[0].ToString(), "yyy/MM/dd", CultureInfo.InvariantCulture).AddYears(1911);
                 StockInfoData.Date = Datec;
-                //DateTime.TryParse(data[0].ToString(),out dateout)?new DateTime(): dateout;
                 StockInfoData.TradingVolume = decimal.TryParse(data[1].ToString().Replace(",", ""), out convertout) ? convertout : 0;
                 StockInfoData.Turnover = decimal.TryParse(data[2].ToString().Replace(",", ""), out convertout) ? convertout : 0;
                 StockInfoData.OpeningPrice = decimal.TryParse(data[3].ToString(), out convertout) ? convertout : 0;
@@ -127,7 +126,6 @@ namespace StockDataCatcher.Models.Stock
                 StockInfoData.ClosingPrice = decimal.TryParse(data[6].ToString(), out convertout) ? convertout : 0;
                 StockInfoData.Spreads = decimal.TryParse(data[7].ToString(), out convertout) ? convertout : 0;
                 StockInfoData.TransactionAmount = decimal.TryParse(data[8].ToString().Replace(",", ""), out convertout) ? convertout : 0;
-                
             });
             _log.Log($"{StockInfoData.Date}處理完成!");
             return StockInfoData;

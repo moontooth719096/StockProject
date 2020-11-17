@@ -26,17 +26,14 @@ namespace StockDataCatcher
 #endif
             CongifSetting();
             ServiceSetting();
-
-            //IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>();
-            //IStockService stockService = serviceProvider.GetService<IStockService>();
-            //stockService.Proccess();
-            IList<DateTime> date = new List<DateTime>() {
-               new DateTime(2020,08,01)
-            };
+            IStockService stockService = serviceProvider.GetService<IStockService>();
+            //IList<DateTime> date = new List<DateTime>() {
+            //   new DateTime(2020,08,01)
+            //};
             foreach (IStock service in serviceProvider.GetServices<IStock>())
             {
-                //service.DataProccess();
-                service.DataProccess_UserSeting(date);
+                service.DataProccess();
+                //service.DataProccess_UserSeting(date);
             }
             Console.ReadKey();
         }
@@ -64,7 +61,6 @@ namespace StockDataCatcher
             serviceProvider = new ServiceCollection()
                 .AddHttpClient()
                 .AddSingleton<ConsoleLogHelper>()
-                .AddSingleton<IConfiguration>(config)
                 .AddSingleton<APIService>()
                 .AddSingleton<LineNotifyService>()
                 .AddSingleton<List<StockIDModel>>(data)
