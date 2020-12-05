@@ -20,15 +20,13 @@ namespace StockDataCatcher.Helper
                 }
                 FileStream fs = File.Create(FileData.FilePath);
                 fs.Close();
-                Result.Code = (int)ResultCodeEnum.Success;
-                Result.DebugMessage = ResultCodeEnum.Success.ToString();
+                Result.ResultStatus = ResultCodeEnum.Success;
                 Result.ShowMessage = $"新增 {FileData.FileName} 成功";
             }
             catch (Exception ex)
             {
                 ex.ToString();
-                Result.Code = (int)ResultCodeEnum.Exception;
-                Result.DebugMessage = $"{ResultCodeEnum.Exception.ToString()}";
+                Result.ResultStatus = ResultCodeEnum.Exception;
                 Result.ShowMessage = $"新增 {FileData.FileName} 發生例外";
                 Result.Description = $"ex：{ex}";
             }
@@ -48,7 +46,7 @@ namespace StockDataCatcher.Helper
                     return Result;
                 using (StreamWriter sw = new StreamWriter(FileData.FilePath))    
                 {
-                    sw.WriteLine(Message);
+                    sw.WriteLineAsync(Message);
                 }
             }
             return Result;

@@ -12,6 +12,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using StockAPI.Controllers.Services;
+using StockAPI.Middlewares;
+using StockAPI.Services;
 
 namespace StockAPI
 {
@@ -66,6 +68,7 @@ namespace StockAPI
             {
                 app.UseDeveloperExceptionPage();
             }
+            app.UseMiddleware<RequestTimingMiddleware>();
             app.UseCors("CorsPolicy");
             app.UseHttpsRedirection();
 

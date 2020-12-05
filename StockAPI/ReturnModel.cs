@@ -9,10 +9,8 @@ namespace StockAPI
     public class ReturnModel
     {
         public APICodeEnum APICode { get; set; }
-        public int Code
-        { get { return (int)APICode; } }
-        public string CodeMesage
-        { get { return APICode.ToString(); } }
+        public int Code => (Int32)APICode;
+        public string CodeMesage => APICode.ToString();
         public string DetilMessage { get; set; }
     }
 }
