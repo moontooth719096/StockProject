@@ -133,13 +133,13 @@ namespace StockDataCatcher.Models.Stock
         #endregion
 
         #region 存入db
-        public override void DataSave(IList<StockInfo> Data)
+        public async override void DataSave(IList<StockInfo> Data)
         {
             Dictionary<string, object> Result = new Dictionary<string, object>();
 
             try
             {
-                Result = _stockInfoDB.BatchSP_ImportStockInfo(Data);
+                Result =await _stockInfoDB.BatchSP_ImportStockInfo(Data);
                 string ResultMessage = $"{DateTime.Now}--Code：{Result["Code"].ToString()}，Msg：{Result["Message"].ToString()}";
                 if (Result["Code"].ToString() == "1")
                     _log.Log(ResultMessage, ConsoleColor.Green);
